@@ -1,0 +1,6 @@
+{
+  "name": "square",
+  "short_name": "square",
+  "start_url": "/",
+  "display": "standalone"
+}

@@ -1,0 +1,107 @@
+<script src="/lib/math.js"></script>
+<link rel="import" href="/bower_components/paper-input/paper-input.html">
+
+<dom-module id="math-expr">
+	<template>
+		<style>
+			:host {
+				display: block;
+				margin-bottom: 10px
+			}
+		</style>
+		<div id="defiSpace">
+		</div>
+	</template>
+	<script>
+	
+	var sumSqrt = function(B){
+		var S = 0;
+		_.each(B,function(b){
+			S += math.sqrt(b);
+		})
+		return S;
+	}
+	sumSqrt.transform  = function(B){
+		return sumSqrt(B)
+	};
+	sumSqrt.toTex = {1: '\\sum ${args[0]}^{\\frac{1}{2}}'};
+
+
+	math.import({
+	  sumSqrt: sumSqrt
+	});
+	
+
+	Polymer({
+		is: 'math-expr',
+		properties:{
+			expr:{
+				type:String
+			},
+			scope:{
+				observer:'_workValues'
+			}
+		},
+		ready:function(){
+
+		},
+		_workValues:function(){
+
+			var scope 	= this.scope;
+			var node 	= math.parse(this.expr)
+
+			var transformed = node.transform(function (node, path, parent) 
+			{
+				if (node.isSymbolNode && scope[node.name]) {
+
+					if(_.isArray(scope[node.name]))
+						return math.parse(JSON.stringify(scope[node.name]))
+					else
+						return new math.expression.node.ConstantNode(scope[node.name]);
+				}
+				else {
+					return node;
+				}
+			});
+			var functionEvalued = node.transform(function (node, path, parent) 
+			{
+
+				if (node && node.isFunctionNode) {
+					return new math.expression.node.ConstantNode( node.eval(scope) );
+				}
+				else if(_.isArray(scope[node.name]))
+						return math.parse(JSON.stringify(scope[node.name]))
+				else if(scope[node.name])
+						return new math.expression.node.ConstantNode(scope[node.name]);
+				else {
+					return node;
+				}
+			});
+			var parentesisEvalued = node.transform(function (node, path, parent) 
+			{
+
+				if (parent && parent.isParenthesisNode) {
+					return new math.expression.node.ConstantNode( node.eval(scope) );
+				}
+				else {
+					return node;
+				}
+			});
+
+			scope[node.object] = node.eval(scope)
+
+			this.$.defiSpace.innerHTML = 
+			'<math-tex>'
+			+	'\\begin{align}'
+			+	node.toTex()				.replace(":=","&:=")		+ "\\\\"		
+			+	transformed.toTex()			.replace(/.+:=/,' & =') 	+ "\\\\"
+			+	functionEvalued.toTex()		.replace(/.+:=/,' & =') 	+ "\\\\"
+			+	parentesisEvalued.toTex()	.replace(/.+:=/,' & =') 	+ "\\\\"
+			+	"& ="+String(scope[node.object])		
+			+	'\\end{align}' 
+			+'</math-tex>';
+		}
+		
+	});
+	</script>
+</dom-module>

@@ -1,0 +1,195 @@
+
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="math-expr.html">
+
+<dom-module id="square-row">
+  <style include="iron-flex"></style>
+
+	<template>
+		<style>
+			:host {
+				position:relative;
+				display:block;
+				padding-bottom: 24px;
+			    border-bottom: 2px dashed #ccc;
+			    padding-top: 10px;
+			}
+			* .math-block /deep/ .MathJax_CHTML
+			{
+				    background: #CFD8DC;
+				    padding: 17px;
+				    border-radius: 14px;
+			}
+		</style>
+		
+		<div id="let"></div>
+
+		<div id="main"></div>
+
+		<math-expr 
+			scope="{{scope}}"
+			expr="epsilon = (sqrt(alpha)-delta)*(sqrt(alpha)+sumSqrt(beta))-n">
+		</math-expr>
+		
+		<math-expr 
+			scope="{{scope}}"
+			expr="lambda = 
+			(sqrt(alpha)*(sqrt(alpha)-delta))/((sqrt(alpha)-delta)) - 
+			(sqrt(alpha)*(sqrt(alpha)-delta) - epsilon)/((sqrt(alpha)-delta))">
+		</math-expr>
+
+		<math-expr 
+			scope="{{scope}}"
+			expr="gamma_1 = (sqrt(alpha)-lambda)*(sqrt(alpha)+sumSqrt(beta))-n">
+		</math-expr>
+		<math-expr 
+			scope="{{scope}}"
+			expr="gamma_2 = (sqrt(alpha)-delta)*(sqrt(alpha)+sumSqrt(beta)-lambda)-n">
+		</math-expr>
+
+<!--
+		<div class="layout vertical">		
+			<div id="header">
+				For <math-tex>n = {{ number }}:</math-tex>
+			</div>
+			<div class="layout horizontal">
+				<div id="main">
+				</div>
+				<div>
+					Let
+					<math-tex>
+					n = \alpha + \beta = \alpha + \sum_{k=1}\beta_k
+					</math-tex> <br/>
+					If
+					<math-tex display="block">
+						\beta = k\sqrt{\alpha} \Rightarrow ( \sqrt\alpha )( \sqrt{\alpha+k}) = n
+					</math-tex>
+					Else compute:
+					<math-tex display="block">
+					\begin{align}
+						\epsilon & =
+						\Bigg(
+							\sqrt{\alpha}-{{K}}
+						\Bigg)
+						\Bigg(
+							\sqrt{\alpha}+\sum_{k=1}\sqrt{\beta_k}
+						\Bigg) -n\\
+						& =
+						\Bigg(\sqrt{ {{alpha}} }-{{K}}\Bigg)
+						\Bigg(\sqrt{ {{alpha}} }+ {{beta}} \Bigg)-{{number}} \\
+						& = {{epsilon}}
+					\end{align}
+					</math-tex>
+
+					If <math-tex>\epsilon \neq 0</math-tex> then
+					<math-tex display="block">
+					\lambda = \frac
+						{ \sqrt{\alpha}(\sqrt{\alpha}-{{K}}) }
+						{ \sqrt{\alpha}-{{K}} }
+						- \frac
+						{ \sqrt{\alpha}(\sqrt{\alpha}-{{K}}) - \epsilon }
+						{ \sqrt{\alpha}-{{K}} } = {{lambda}}
+					</math-tex>
+
+
+If <math-tex>\lambda \in \mathbb{Z}</math-tex> then
+<math-tex display="block">
+	\begin{align}
+		n & =
+		\Bigg(
+			\sqrt{\alpha}-\lambda
+		\Bigg)
+		\Bigg(
+			\sqrt{\alpha}+\sum_{k=1}\sqrt{\beta_k}
+		\Bigg) \\
+		& =
+		{{number}}-
+		\Bigg(
+			\sqrt{ {{alpha}} }- {{lambda}} 
+		\Bigg)
+		\Bigg(
+			\sqrt{ {{alpha}} }+ {{beta}} 
+		\Bigg) = {{q1}}\\
+		& =
+		{{number}}-
+		\Bigg(
+			\sqrt{ {{alpha}} }-{{K}} 
+		\Bigg) 
+		\Bigg(
+			\sqrt{ {{alpha}} }+ {{beta}} - {{lambda}}
+		\Bigg)={{q2}} \\
+	\end{align}
+</math-tex>
+-->
+	</div>
+	</div>
+
+	</template>
+	<script>
+
+
+		Polymer({
+			is: 'square-row',
+			properties:{
+				n:{value:4,observer:'_render'}
+			},
+			_Krender:function(){
+
+				this._render();
+			},
+			_render:function(){
+
+				var n = math.eval(this.n);
+				var B = BlockOperator(n).squares
+				
+				var scope = {}
+				scope.n 		= n;
+				scope.alpha 	= _.first(B);
+				scope.beta  	= _.difference(B,[scope.alpha]);
+				scope.delta = (math.sqrt(scope.alpha) - math.sqrt(scope.beta[0]))-1
+				this.scope = scope;
+
+
+				this.$.let.innerHTML = 
+				'<math-tex>\\text{Let } n='+n
+					+' \\Longrightarrow \\alpha='+scope.alpha
+					+',\\beta='+math.parse(JSON.stringify(scope.beta)).toTex()+'</math-tex>';
+			
+				
+				// this.q1 = 	( (sqrt(a)-lambda) * (sqrt(a)+b) ) - n
+				// this.q2 =	( (sqrt(a)-K) * (sqrt(a)+b-lambda) ) - n
+
+
+				var str = "";
+				_.each(B,function(b,k){
+					str += '<square-box value="'+b+'" index="'+k+'"></square-box>'
+				},this)
+				this.$.main.innerHTML = str;
+
+
+
+			}
+		});
+
+		function R(n) 
+		{
+			var v = Math.floor(Math.sqrt(n));
+			var square = Math.pow(v,2);
+
+			return {isqrt:v,remainder:n-square,square:square}
+		}
+		function BlockOperator(n)
+		{
+			var Y = []
+			var Rk = R(n);
+			Y.push(Rk)
+			while(Rk.remainder > 0) 
+			{
+				Rk = R(Rk.remainder)
+				Y.push(Rk)
+			}	
+			
+			return {squares:_.pluck(Y,'square'),roots:_.pluck(Y,'isqrt')}
+		}
+	</script>
+</dom-module>

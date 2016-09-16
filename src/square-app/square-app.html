@@ -1,0 +1,51 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="square-row.html">
+<link rel="import" href="square-box.html">
+<dom-module id="square-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <div class="layout vertical">
+	    <square-row n="3*7"></square-row>
+      <square-row n="4*7"></square-row>
+      <square-row n="11*7"></square-row>
+      <square-row n="8*7"></square-row>
+      <square-row n="23*7"></square-row>
+
+      <!--
+	    <square-row number="4*7"></square-row>
+	    <square-row number="6*7"></square-row>
+	    <square-row number="11*10"></square-row>
+	    <square-row number="12*15"></square-row>
+	    <square-row number="13*17"></square-row>
+	    <square-row number="39*7"></square-row>
+	    <square-row number="911*7" curiosites="if K = 9 => \lambda = 5.00...09=> q2*10 * q1*0.1">
+      </square-row>
+    -->
+	  	<!--
+			<square-row number="15485867*32452867"></square-row>
+			-->
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'square-app',
+
+      ready:function(){
+
+      }
+
+    });
+
+	
+
+  </script>
+</dom-module>
+
+
